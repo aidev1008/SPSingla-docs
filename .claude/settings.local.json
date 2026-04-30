@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/my pc/.claude/projects/d--Bytecode-SPSingla-docs/memory/**)",
+      "Bash(nvm version *)",
+      "Bash(npm -v)",
+      "Bash(nvm list *)",
+      "Bash(where.exe node *)",
+      "Bash(nvm current *)",
+      "PowerShell($user = [Environment]::GetEnvironmentVariable\\('Path','User'\\); $sys = [Environment]::GetEnvironmentVariable\\('Path','Machine'\\); Write-Output '=== USER PATH ==='; $user -split ';' | Where-Object { $_ -match 'node' }; Write-Output '=== SYSTEM PATH ==='; $sys -split ';' | Where-Object { $_ -match 'node' })",
+      "Bash(\"/c/nvm4w/nodejs/node.exe\" -v)",
+      "Bash(\"/c/nvm4w/nodejs/npm.cmd\" -v)",
+      "Bash(tasklist)",
+      "Bash(export PATH=\"/c/nvm4w/nodejs:$PATH\")",
+      "Bash(npm ci *)",
+      "Bash(rm -rf node_modules)",
+      "Bash(npm install *)",
+      "Bash(npm rebuild *)",
+      "Bash(node find-admin.js)",
+      "Bash(node -e \"const code = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\(code.replace\\('window','globalThis'\\)\\); console.log\\('pagination.js parses OK'\\);\")",
+      "Bash(node -e \"const c = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\('global', c\\); console.log\\('parses ok'\\); console.log\\('contains pgn-scroll:', c.includes\\('pgn-scroll'\\)\\); console.log\\('contains buildPageList:', c.includes\\('buildPageList'\\)\\);\")",
+      "Bash(node -e \"const c = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\('global', c\\); console.log\\('parses ok'\\); console.log\\('has arrow chars:', c.includes\\('8249'\\) && c.includes\\('8250'\\)\\);\")"
+    ]
+  }
+}

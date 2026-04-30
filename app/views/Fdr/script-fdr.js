@@ -64,30 +64,6 @@ $(".filter-limit a").click(function (event) {
   fetchAllfdrs();
 });
 
-function handlePaginationClick(event) {
-  event.preventDefault();
-  const $target = $(event.target).closest("li");
-  let newPage = filters.page;
-
-  if ($target.hasClass("previous") && filters.page > 1) {
-    newPage--;
-  } else if ($target.hasClass("next") && filters.page < totalPages) {
-    newPage++;
-  } else {
-    const clickedPage = parseInt($target.find("a").text());
-    if (!isNaN(clickedPage)) {
-      newPage = clickedPage;
-    }
-  }
-
-  if (newPage !== filters.page) {
-    filters.page = newPage;
-    fetchAllfdrs();
-  }
-}
-
-$("#table-pagination").on("click", "a", handlePaginationClick);
-
 function rendersummaryRow(data) {
   const rowSummary = data.aggregatedAmountRow[0];
 

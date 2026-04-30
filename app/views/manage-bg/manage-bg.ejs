@@ -862,6 +862,7 @@
 
     <script src="/app/assets/js/bundle.js"></script>
     <script src="/app/assets/js/scripts.js"></script>
+    <script src="/app/assets/js/pagination.js"></script>
     <script src="/app/views/manage-bg/manage-bg-script.js"></script>
     <script>
         let filters = {
@@ -919,7 +920,15 @@
 
                         renderTabledata(response)
                         totalPages = response.payload.totalPages || 1;
-                        updatePagination(totalPages, filters.page);
+                        renderPagination({
+                            selector: '#table-pagination .pagination',
+                            totalPages: totalPages,
+                            currentPage: filters.page,
+                            onPageChange: function (newPage) {
+                                filters.page = newPage;
+                                fetchProjects();
+                            }
+                        });
                     } else {
                         $("#table-status").html(`<div class="text-center"><p>Something Went Wrong</p></div>`);
                         $(".scrollable-datatable").css({ 'overflow': 'none !important' });
@@ -1102,31 +1111,6 @@
         (function () {
             fetchProjects()
         })();
-
-        function handlePaginationClick(event) {
-            event.preventDefault();
-            const $target = $(event.target).closest('li');
-            let newPage = filters.page;
-
-            if ($target.hasClass('previous') && filters.page > 1) {
-                newPage--;
-            } else if ($target.hasClass('next') && filters.page < totalPages) {
-                newPage++;
-            } else {
-                const clickedPage = parseInt($target.find('a').text());
-                if (!isNaN(clickedPage)) {
-                    newPage = clickedPage;
-                }
-            }
-
-            if (newPage !== filters.page) {
-                filters.page = newPage;
-                fetchProjects()
-            }
-        }
-
-        $('#table-pagination').on('click', 'a', handlePaginationClick);
-
 
         $(document).on('click', '#deleteDoc', function (event) {
             event.preventDefault();

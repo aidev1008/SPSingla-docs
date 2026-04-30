@@ -60,50 +60,6 @@ $(document).ready(function () {
 
 });
 
-function updatePagination(totalPages, currentPage) {
-    const $pagination = $('#table-pagination .pagination');
-    $pagination.empty();
-
-    // Previous button
-    $pagination.append(`<li class="paginate_button page-item ${currentPage === 1 ? 'disabled' : 'previous'}" id="DataTables_Table_2_previous"><a aria-controls="DataTables_Table_2" role="link" data-dt-idx="previous" tabindex="0" class="page-link">Prev</a></li>`);
-
-    // Helper function to create a page item
-    const createPageItem = (page, active = false) => {
-        return `<li class="paginate_button page-item ${active ? 'active' : ''}"><a href="#" aria-controls="DataTables_Table_2" role="link" data-dt-idx="${page}" tabindex="0" class="page-link">${page}</a></li>`;
-    };
-
-    // Render first 3 pages
-    for (let i = 1; i <= 3; i++) {
-        if (i <= totalPages) {
-            $pagination.append(createPageItem(i, i === currentPage));
-        }
-    }
-
-    // Render middle dots if necessary
-    if (currentPage > 4 && totalPages > 6) {
-        $pagination.append('<li class="paginate_button page-item disabled"><a href="#" class="page-link">...</a></li>');
-    }
-
-    // Render current page in middle if it's not in the first or last 3 pages
-    if (currentPage > 3 && currentPage < totalPages - 2) {
-        $pagination.append(createPageItem(currentPage, true));
-    }
-
-    // Render middle dots if necessary
-    if (currentPage < totalPages - 3 && totalPages > 6) {
-        $pagination.append('<li class="paginate_button page-item disabled"><a href="#" class="page-link">...</a></li>');
-    }
-
-    // Render last 3 pages
-    for (let i = totalPages - 2; i <= totalPages; i++) {
-        if (i > 3) {
-            $pagination.append(createPageItem(i, i === currentPage));
-        }
-    }
-
-    // Next button
-    $pagination.append(`<li class="paginate_button page-item ${currentPage === totalPages ? 'disabled' : 'next'}" id="DataTables_Table_2_next"><a aria-controls="DataTables_Table_2" role="link" data-dt-idx="next" tabindex="0" class="page-link">Next</a></li>`);
-}
 function resetSortFilter() {
     $("#table-head .nk-tb-col").removeClass("sort-asc sort-dsc active");
 }
