@@ -2,8 +2,8 @@ const OpenAIApi = require("openai");
 
 const openai = new OpenAIApi({ apiKey: process.env.OPENAI_API_KEY });
 
-const processOpenAI = async (text) => {    
-    const prompt = `   
+const processOpenAI = async (text) => {
+  const prompt = `   
 
     NOTE:- Given the text extracted from the first page of a formal letter using Amazon Textract, transform it into a polished and professional letter format. The output should adhere to formal business communication standards, ensuring the following:
     Proper alignment: Ensure consistent margins and alignment for all elements, such as sender's and recipient's addresses, date, reference, salutation, body, and signature.
@@ -112,19 +112,19 @@ Rail Cum Road Brtdge) between Dighaghat - Pahlezaghat near Patna, on the river G
     text:  ${text}.
    `;
 
-    try {
-        const response = await openai.chat.completions.create({
-            messages: [{ role: "user", content: prompt }],
-            model: "gpt-3.5-turbo",
-            temperature: 0,
-            response_format: { type: "json_object" },
-        });
+  try {
+    const response = await openai.chat.completions.create({
+      messages: [{ role: "user", content: prompt }],
+      model: "gpt-4o-mini",
+      temperature: 0,
+      response_format: { type: "json_object" },
+    });
 
-        return response;
-    } catch (error) {
-        console.error("Error extracting information from OpenAI:", error);
-        return null;
-    }
+    return response;
+  } catch (error) {
+    console.error("Error extracting information from OpenAI:", error);
+    return null;
+  }
 };
 
 module.exports = processOpenAI;

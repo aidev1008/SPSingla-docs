@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en" class="js">
+
+<head>
+    <base href="../" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="shortcut icon" href="/app/assets/images/favicon.png" />
+    <title>Same-Reference Docs | Document Controller</title>
+    <link rel="stylesheet" href="/app/assets/css/dashlite.css" />
+    <link id="skin-default" rel="stylesheet" href="/app/assets/css/theme.css" />
+    <style>
+        .ref-banner {
+            background: #fff5f5;
+            border: 1px solid #fed1d1;
+            border-radius: 6px;
+            padding: 14px 18px;
+            margin-bottom: 18px;
+        }
+        .ref-banner code {
+            font-size: 14px;
+            color: #b8423a;
+            background: transparent;
+            padding: 0;
+        }
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e5e9f2;
+            border-radius: 6px;
+            padding: 14px 18px;
+        }
+        .stat-value { font-size: 20px; font-weight: 700; color: #364a63; }
+        .stat-label { font-size: 11px; color: #8094ae; text-transform: uppercase; letter-spacing: .5px; }
+        .doc-number { font-family: 'Courier New', monospace; font-size: 12px; }
+        .folder-pill {
+            display: inline-block;
+            background: #f1f3f9;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            color: #526484;
+        }
+        .badge-source-ai { background: #f4bd0e; color: #fff; }
+        .badge-source-form { background: #1ee0ac; color: #fff; }
+        .pagination-bar {
+            padding: 12px 16px;
+            border-top: 1px solid #e5e9f2;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+    </style>
+</head>
+
+<body class="nk-body bg-lighter npc-general has-sidebar">
+    <div class="nk-app-root">
+        <div class="nk-main">
+            <%- include('../common/sidebar', { active: "ReferenceAudit" }); -%>
+            <div class="nk-wrap">
+                <%- include('../common/navbar', { headerText: "Reference Audit Detail" }); -%>
+                <div class="nk-content">
+                    <div class="container-fluid">
+                        <div class="nk-content-inner">
+                            <div class="nk-content-body">
+
+                                <div class="nk-block-head nk-block-head-sm">
+                                    <div class="nk-block-between">
+                                        <div class="nk-block-head-content">
+                                            <h3 class="nk-block-title page-title">Documents with this reference</h3>
+                                            <div class="nk-block-des text-soft">
+                                                <p>Every document that has the reference number shown below.</p>
+                                            </div>
+                                        </div>
+                                        <div class="nk-block-head-content">
+                                            <a href="/admin/reference-audit" class="btn btn-outline-light">
+                                                <em class="icon ni ni-arrow-left"></em><span>Back</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="nk-block">
+                                    <div class="ref-banner">
+                                        <div class="stat-label mb-1">Reference number</div>
+                                        <code><%= reference %></code>
+                                    </div>
+
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Documents</div>
+                                                <div class="stat-value"><%= stats.total_docs.toLocaleString() %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Folders</div>
+                                                <div class="stat-value"><%= stats.folder_count %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">First uploaded</div>
+                                                <div class="stat-value" style="font-size:14px;"><%= stats.earliest || '—' %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-3 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Last uploaded</div>
+                                                <div class="stat-value" style="font-size:14px;"><%= stats.latest || '—' %></div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="card card-bordered card-stretch">
+                                        <div class="card-inner-group">
+                                            <div class="card-inner p-0">
+                                                <div class="nk-tb-list nk-tb-ulist is-compact">
+                                                    <div class="nk-tb-item nk-tb-head">
+                                                        <div class="nk-tb-col"><span class="sub-text">ID</span></div>
+                                                        <div class="nk-tb-col"><span class="sub-text">Letter Number</span></div>
+                                                        <div class="nk-tb-col"><span class="sub-text">Folder</span></div>
+                                                        <div class="nk-tb-col"><span class="sub-text">Source</span></div>
+                                                        <div class="nk-tb-col"><span class="sub-text">Uploaded</span></div>
+                                                        <div class="nk-tb-col"><span class="sub-text">Has text</span></div>
+                                                        <div class="nk-tb-col nk-tb-col-tools text-end"><span class="sub-text">&nbsp;</span></div>
+                                                    </div>
+
+                                                    <% docs.forEach(doc => {
+                                                        const docIdB64 = Buffer.from(String(doc.doc_id), 'utf-8').toString('base64');
+                                                        const sourceBadge = doc.doc_source === 'AI IMPORT' ? 'badge-source-ai'
+                                                                          : doc.doc_source === 'FORM' ? 'badge-source-form'
+                                                                          : 'bg-light';
+                                                    %>
+                                                    <div class="nk-tb-item">
+                                                        <div class="nk-tb-col">
+                                                            <span class="doc-number"><%= doc.doc_id %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col">
+                                                            <span class="doc-number"><%= doc.doc_number %></span>
+                                                            <% if (doc.doc_subject) { %>
+                                                                <div class="text-soft" style="font-size:11px; max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                                                    <%= doc.doc_subject.substring(0, 80) %><%= doc.doc_subject.length > 80 ? '…' : '' %>
+                                                                </div>
+                                                            <% } %>
+                                                        </div>
+                                                        <div class="nk-tb-col">
+                                                            <span class="folder-pill"><%= doc.doc_folder %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col">
+                                                            <span class="badge <%= sourceBadge %>"><%= doc.doc_source || '—' %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col">
+                                                            <span style="font-size:12px;"><%= doc.doc_uploaded_at || '—' %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col">
+                                                            <% if (doc.has_ocr) { %>
+                                                                <em class="icon ni ni-check-circle-fill" style="color:#1ee0ac;" title="OCR cached"></em>
+                                                            <% } else { %>
+                                                                <em class="icon ni ni-cross-circle-fill" style="color:#e85347;" title="No cached OCR"></em>
+                                                            <% } %>
+                                                        </div>
+                                                        <div class="nk-tb-col nk-tb-col-tools text-end">
+                                                            <% if (doc.doc_pdf_link) { %>
+                                                                <a href="<%= doc.doc_pdf_link %>" target="_blank" rel="noopener" class="btn btn-sm btn-outline-light" title="Open PDF">
+                                                                    <em class="icon ni ni-file-pdf"></em>
+                                                                </a>
+                                                            <% } %>
+                                                            <a href="/edit-document/<%= docIdB64 %>" class="btn btn-sm btn-outline-primary" title="Edit document">
+                                                                <em class="icon ni ni-edit"></em>
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <% }) %>
+
+                                                    <% if (docs.length === 0) { %>
+                                                        <div class="card-inner text-center text-soft">No documents on this page.</div>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+
+                                            <div class="pagination-bar">
+                                                <span class="text-soft" style="font-size:12px;">
+                                                    Page <%= page %> of <%= totalPages %> · <%= pageSize %> per page · <%= stats.total_docs.toLocaleString() %> total
+                                                </span>
+                                                <div>
+                                                    <% if (page > 1) { %>
+                                                        <a href="/admin/reference-audit/<%= referenceEncoded %>?page=<%= page - 1 %>" class="btn btn-sm btn-light">
+                                                            <em class="icon ni ni-arrow-left"></em> Prev
+                                                        </a>
+                                                    <% } %>
+                                                    <% if (page < totalPages) { %>
+                                                        <a href="/admin/reference-audit/<%= referenceEncoded %>?page=<%= page + 1 %>" class="btn btn-sm btn-primary">
+                                                            Next <em class="icon ni ni-arrow-right"></em>
+                                                        </a>
+                                                    <% } %>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <%- include('../common/footer'); -%>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app/assets/js/bundle.js"></script>
+    <script src="/app/assets/js/scripts.js"></script>
+</body>
+
+</html>

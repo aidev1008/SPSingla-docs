@@ -19,7 +19,11 @@
       "Bash(node find-admin.js)",
       "Bash(node -e \"const code = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\(code.replace\\('window','globalThis'\\)\\); console.log\\('pagination.js parses OK'\\);\")",
       "Bash(node -e \"const c = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\('global', c\\); console.log\\('parses ok'\\); console.log\\('contains pgn-scroll:', c.includes\\('pgn-scroll'\\)\\); console.log\\('contains buildPageList:', c.includes\\('buildPageList'\\)\\);\")",
-      "Bash(node -e \"const c = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\('global', c\\); console.log\\('parses ok'\\); console.log\\('has arrow chars:', c.includes\\('8249'\\) && c.includes\\('8250'\\)\\);\")"
+      "Bash(node -e \"const c = require\\('fs'\\).readFileSync\\('app/assets/js/pagination.js','utf8'\\); new Function\\('global', c\\); console.log\\('parses ok'\\); console.log\\('has arrow chars:', c.includes\\('8249'\\) && c.includes\\('8250'\\)\\);\")",
+      "PowerShell(pg_dump --version)",
+      "PowerShell(psql --version)",
+      "Read(//c/Program Files/PostgreSQL/**)",
+      "Read(//c//**)"
     ]
   }
 }

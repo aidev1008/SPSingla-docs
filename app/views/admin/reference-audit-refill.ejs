@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en" class="js">
+
+<head>
+    <base href="../" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="shortcut icon" href="/app/assets/images/favicon.png" />
+    <title>Batch Fix | Document Controller</title>
+    <link rel="stylesheet" href="/app/assets/css/dashlite.css" />
+    <link id="skin-default" rel="stylesheet" href="/app/assets/css/theme.css" />
+    <style>
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e5e9f2;
+            border-radius: 6px;
+            padding: 14px 18px;
+        }
+        .stat-value { font-size: 20px; font-weight: 700; color: #364a63; }
+        .stat-label { font-size: 11px; color: #8094ae; text-transform: uppercase; letter-spacing: .5px; }
+
+        .hero-card {
+            background: linear-gradient(135deg, #fff5f5 0%, #ffeaea 100%);
+            border: 1px solid #fed1d1;
+            border-radius: 10px;
+            padding: 28px 32px;
+            margin-bottom: 20px;
+        }
+        .hero-card .ref-display {
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            color: #b8423a;
+            margin-top: 6px;
+            word-break: break-all;
+        }
+        .hero-card .hero-message {
+            font-size: 14px;
+            color: #526484;
+            margin-top: 14px;
+        }
+
+        .config-panel {
+            background: #fff;
+            border: 1px solid #e5e9f2;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .config-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f3f9; }
+        .config-row:last-child { border-bottom: none; }
+        .config-label { color: #526484; font-size: 13px; }
+        .config-value { font-weight: 600; color: #364a63; font-size: 13px; }
+
+        .start-btn {
+            font-size: 16px;
+            padding: 14px 32px;
+            font-weight: 600;
+        }
+
+        .progress-card {
+            background: #fff;
+            border: 1px solid #e5e9f2;
+            border-radius: 8px;
+            padding: 24px;
+            margin-top: 20px;
+            display: none;
+        }
+        .progress-card.active { display: block; }
+        .progress-bar-wrap { background: #f1f3f9; border-radius: 6px; height: 14px; overflow: hidden; margin: 14px 0; }
+        .progress-bar-inner { background: linear-gradient(90deg, #6576ff, #1ee0ac); height: 100%; width: 0; transition: width 0.4s ease; }
+        .progress-counters { display: flex; gap: 24px; flex-wrap: wrap; margin-top: 14px; }
+        .pc-item { display: flex; flex-direction: column; }
+        .pc-label { font-size: 11px; color: #8094ae; text-transform: uppercase; }
+        .pc-value { font-size: 18px; font-weight: 700; color: #364a63; }
+        .pc-value.success { color: #1ee0ac; }
+        .pc-value.danger { color: #e85347; }
+        .pc-value.warn { color: #f4bd0e; }
+
+        .activity-table {
+            margin-top: 18px;
+            max-height: 320px;
+            overflow-y: auto;
+            border: 1px solid #e5e9f2;
+            border-radius: 6px;
+        }
+        .activity-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr 90px;
+            padding: 8px 12px;
+            border-bottom: 1px solid #f1f3f9;
+            font-size: 12px;
+            font-family: 'Courier New', monospace;
+            color: #526484;
+        }
+        .activity-row.header {
+            background: #f5f6fa;
+            font-weight: 600;
+            color: #364a63;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+        .activity-row .status-pill {
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: 'Nunito', sans-serif;
+            text-align: center;
+        }
+        .status-updated { background: #c4f3df; color: #0f7a5a; }
+        .status-skipped { background: #fef3c7; color: #a06d00; }
+        .status-failed { background: #ffd1cc; color: #b8423a; }
+
+        .cost-pill {
+            display: inline-block;
+            background: #fff5f5;
+            color: #b8423a;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        /* Prominent action bar at the top */
+        .action-bar {
+            background: linear-gradient(135deg, #eef2ff 0%, #e3ecff 100%);
+            border: 1px solid #c8d5f5;
+            border-radius: 10px;
+            padding: 22px 28px;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .action-bar .ab-left { flex: 1 1 auto; min-width: 240px; }
+        .action-bar .ab-title { font-size: 16px; font-weight: 700; color: #364a63; margin: 0; }
+        .action-bar .ab-sub { font-size: 13px; color: #526484; margin-top: 4px; }
+        .action-bar .ab-right { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+        .action-bar .dry-toggle-inline {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 13px;
+            color: #364a63;
+            background: #fff;
+            border: 1px solid #c8d5f5;
+            padding: 6px 12px;
+            border-radius: 6px;
+        }
+
+        /* Job status panel */
+        .job-status-panel {
+            background: #fff;
+            border: 1px solid #e5e9f2;
+            border-radius: 8px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+        }
+        .job-status-panel .jsp-title {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+        }
+        .job-status-panel .jsp-title h6 { margin: 0; }
+        .status-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .status-chip.idle { background: #f1f3f9; color: #8094ae; }
+        .status-chip.running { background: #e0e9ff; color: #2a4cb8; }
+        .status-chip.done { background: #c4f3df; color: #0f7a5a; }
+        .status-chip.stopped { background: #fef3c7; color: #a06d00; }
+        .status-chip .dot {
+            width: 8px; height: 8px; border-radius: 50%;
+            background: currentColor;
+        }
+        .status-chip.running .dot { animation: pulse 1.2s infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        .jsp-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 14px;
+            margin-bottom: 16px;
+        }
+        @media (max-width: 768px) {
+            .jsp-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        .jsp-cell {
+            background: #f8f9fc;
+            border-radius: 6px;
+            padding: 12px 14px;
+        }
+        .jsp-cell .jsp-label {
+            font-size: 11px;
+            color: #8094ae;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+        .jsp-cell .jsp-val {
+            font-size: 17px;
+            font-weight: 700;
+            color: #364a63;
+            margin-top: 4px;
+        }
+        .jsp-cell .jsp-val.success { color: #0f7a5a; }
+        .jsp-cell .jsp-val.danger { color: #b8423a; }
+        .jsp-cell .jsp-val.warn { color: #a06d00; }
+    </style>
+</head>
+
+<body class="nk-body bg-lighter npc-general has-sidebar">
+    <div class="nk-app-root">
+        <div class="nk-main">
+            <%- include('../common/sidebar', { active: "ReferenceAudit" }); -%>
+            <div class="nk-wrap">
+                <%- include('../common/navbar', { headerText: "Batch Fix" }); -%>
+                <div class="nk-content">
+                    <div class="container-fluid">
+                        <div class="nk-content-inner">
+                            <div class="nk-content-body">
+
+                                <div class="nk-block-head nk-block-head-sm">
+                                    <div class="nk-block-between">
+                                        <div class="nk-block-head-content">
+                                            <h3 class="nk-block-title page-title">Fix this reference</h3>
+                                            <div class="nk-block-des text-soft">
+                                                <p>Re-read every affected letter and replace the wrong reference number with the correct one.</p>
+                                            </div>
+                                        </div>
+                                        <div class="nk-block-head-content">
+                                            <a href="/admin/reference-audit/<%= referenceEncoded %>" class="btn btn-outline-light">
+                                                <em class="icon ni ni-arrow-left"></em><span>Back</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="nk-block">
+
+                                    <!-- Hero reference card -->
+                                    <div class="hero-card">
+                                        <div class="stat-label">Reference number</div>
+                                        <div class="ref-display"><%= reference %></div>
+                                        <div class="hero-message">
+                                            This reference is attached to
+                                            <strong><%= stats.total_docs.toLocaleString() %> documents</strong>
+                                            across <strong><%= stats.distinct_projects %> different projects</strong>,
+                                            which usually means it was saved on the wrong letters by mistake.
+                                            <br><br>
+                                            We will open <strong>every one of those <%= stats.total_docs.toLocaleString() %> letters</strong>,
+                                            read what is actually written inside, and replace the saved reference with
+                                            whatever the letter itself shows under <code>Ref:</code> (or mentions in its body).
+                                            If the letter genuinely mentions this reference, it stays. If it mentions a
+                                            different one, it gets corrected. If it mentions nothing, it is left blank.
+                                            Nothing is assumed.
+                                        </div>
+                                    </div>
+
+                                    <!-- Prominent action bar — visible up top so admin can act immediately -->
+                                    <div class="action-bar" id="actionBar">
+                                        <div class="ab-left">
+                                            <div class="ab-title">Ready to start the fix?</div>
+                                            <div class="ab-sub">
+                                                <%= stats.total_docs.toLocaleString() %> letters will be re-read.
+                                                You can stop at any time — fixed letters stay fixed.
+                                            </div>
+                                        </div>
+                                        <div class="ab-right">
+                                            <label class="dry-toggle-inline">
+                                                <input type="checkbox" id="dryRunToggle" checked>
+                                                Test first (don't save)
+                                            </label>
+                                            <button type="button" class="btn btn-primary start-btn" id="startBatchBtn">
+                                                <em class="icon ni ni-play-fill"></em>
+                                                <span>Start Fix</span>
+                                            </button>
+                                            <button type="button" class="btn btn-outline-danger" id="stopBatchBtn" style="display:none;">
+                                                <em class="icon ni ni-cross"></em>
+                                                <span>Stop</span>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Job status panel — always visible, populates live -->
+                                    <div class="job-status-panel">
+                                        <div class="jsp-title">
+                                            <h6>Job status</h6>
+                                            <span class="status-chip idle" id="statusChip">
+                                                <span class="dot"></span>
+                                                <span id="statusChipLabel">Not started</span>
+                                            </span>
+                                        </div>
+                                        <div class="jsp-grid">
+                                            <div class="jsp-cell">
+                                                <div class="jsp-label">Started</div>
+                                                <div class="jsp-val" id="jspStarted" style="font-size:14px;">—</div>
+                                            </div>
+                                            <div class="jsp-cell">
+                                                <div class="jsp-label">Time spent</div>
+                                                <div class="jsp-val" id="jspElapsed" style="font-size:14px;">—</div>
+                                            </div>
+                                            <div class="jsp-cell">
+                                                <div class="jsp-label">Time remaining</div>
+                                                <div class="jsp-val" id="jspRemaining" style="font-size:14px;">—</div>
+                                            </div>
+                                            <div class="jsp-cell">
+                                                <div class="jsp-label">Currently working on</div>
+                                                <div class="jsp-val" id="jspCurrent" style="font-size:13px; font-family:'Courier New',monospace;">—</div>
+                                            </div>
+                                        </div>
+
+                                        <div class="progress-bar-wrap">
+                                            <div class="progress-bar-inner" id="progressBar"></div>
+                                        </div>
+                                        <div class="d-flex justify-content-between" style="font-size:12px;">
+                                            <span class="text-soft"><strong id="progressDone">0</strong> of <%= stats.total_docs.toLocaleString() %> letters done</span>
+                                            <span class="text-soft"><strong id="progressRemaining"><%= stats.total_docs.toLocaleString() %></strong> letters remaining</span>
+                                        </div>
+
+                                        <div class="progress-counters">
+                                            <div class="pc-item">
+                                                <span class="pc-label">Fixed</span>
+                                                <span class="pc-value success" id="cntUpdated">0</span>
+                                            </div>
+                                            <div class="pc-item">
+                                                <span class="pc-label">Couldn't find a reference</span>
+                                                <span class="pc-value warn" id="cntSkipped">0</span>
+                                            </div>
+                                            <div class="pc-item">
+                                                <span class="pc-label">Need manual review</span>
+                                                <span class="pc-value danger" id="cntFailed">0</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Stat cards -->
+                                    <div class="row g-3 mb-3">
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Letters to re-read</div>
+                                                <div class="stat-value" style="color:#e85347;"><%= stats.total_docs.toLocaleString() %></div>
+                                                <div class="text-soft" style="font-size:11px; margin-top:4px;">All letters carrying this reference</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Projects affected</div>
+                                                <div class="stat-value"><%= stats.distinct_projects %></div>
+                                                <div class="text-soft" style="font-size:11px; margin-top:4px;">Different folders the reference appears in</div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Already readable</div>
+                                                <div class="stat-value"><%= stats.with_ocr.toLocaleString() %></div>
+                                                <div class="text-soft" style="font-size:11px; margin-top:4px;">Letter text already saved, no re-scan needed</div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Why this is needed callout -->
+                                    <div class="config-panel" style="background:#fff8e6; border-color:#fde4a8;">
+                                        <h6 style="margin-bottom:10px;">
+                                            <em class="icon ni ni-info" style="color:#a06d00;"></em>
+                                            Why this needs fixing
+                                        </h6>
+                                        <div class="text-soft" style="font-size:13px; line-height:1.7;">
+                                            A reference number tells you which earlier letter a document is replying to.
+                                            The same reference number should not appear on letters from completely different
+                                            projects — when it does, it usually means it was saved by mistake during upload.
+                                            Fixing it means each letter will once again point to the correct earlier letter,
+                                            and searches by reference will return the right results.
+                                        </div>
+                                    </div>
+
+                                    <!-- What will happen panel -->
+                                    <div class="config-panel">
+                                        <h6 style="margin-bottom:14px;">What will happen when you click Start</h6>
+                                        <div class="config-row">
+                                            <span class="config-label">1. Open each letter one by one</span>
+                                            <span class="config-value">Automatic</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">2. Read the letter's contents and find what it lists under <code>Ref:</code> (or mentions inline)</span>
+                                            <span class="config-value">Automatic</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">3. Save that as the letter's reference — even if it turns out to be the same one we already had</span>
+                                            <span class="config-value">Automatic</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">4. If the letter mentions no reference, leave it blank — never guess</span>
+                                            <span class="config-value">Automatic</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">5. Show every change in the table below — you can watch it live</span>
+                                            <span class="config-value">Automatic</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">Try it first without saving any changes</span>
+                                            <span class="config-value">
+                                                <label class="form-check">
+                                                    <input type="checkbox" id="dryRunToggle" checked>
+                                                    Yes, test first (recommended)
+                                                </label>
+                                            </span>
+                                        </div>
+                                    </div>
+
+                                    <!-- What to expect after panel -->
+                                    <div class="config-panel">
+                                        <h6 style="margin-bottom:14px;">What to expect after it finishes</h6>
+                                        <div class="config-row">
+                                            <span class="config-label">
+                                                <strong style="color:#0f7a5a;">Fixed</strong> — the letter now shows its real reference number.
+                                            </span>
+                                            <span class="config-value">Most letters</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">
+                                                <strong style="color:#a06d00;">Couldn't find a reference</strong> — the letter doesn't mention any earlier reference, so we left it blank. This is normal for first letters in a thread.
+                                            </span>
+                                            <span class="config-value">A few</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">
+                                                <strong style="color:#b8423a;">Needs review</strong> — something went wrong reading this letter. Open it manually and add the reference yourself.
+                                            </span>
+                                            <span class="config-value">Rare</span>
+                                        </div>
+                                        <div class="config-row">
+                                            <span class="config-label">
+                                                Want to undo? Each change is recorded. Tell the developer the date and time and they can roll back.
+                                            </span>
+                                            <span class="config-value">If needed</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Live activity feed (only visible after Start) -->
+                                    <div class="config-panel" id="activityCard" style="display:none;">
+                                        <h6 style="margin-bottom:10px;">Live activity</h6>
+                                        <div class="text-soft" style="font-size:12px; margin-bottom:10px;">
+                                            Most recent letters fixed (newest at the top).
+                                        </div>
+                                        <div class="activity-table">
+                                            <div class="activity-row header">
+                                                <div>Letter Number</div>
+                                                <div>Was</div>
+                                                <div>Now</div>
+                                                <div>Result</div>
+                                            </div>
+                                            <div id="activityBody"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Sample preview -->
+                                    <% if (samples.length > 0) { %>
+                                    <div class="config-panel" style="margin-top:24px;">
+                                        <h6 style="margin-bottom:10px;">A few letters that will be fixed</h6>
+                                        <div class="text-soft" style="font-size:12px; margin-bottom:14px;">
+                                            First 5 of <%= stats.total_docs.toLocaleString() %> letters — click "View letter" to check one before starting.
+                                        </div>
+                                        <% samples.forEach(s => {
+                                            const idB64 = Buffer.from(String(s.doc_id), 'utf-8').toString('base64');
+                                        %>
+                                        <div class="config-row">
+                                            <span class="config-label">
+                                                <code style="font-size:11px;"><%= s.doc_number %></code>
+                                                — <%= s.doc_folder %>
+                                            </span>
+                                            <span class="config-value">
+                                                <a href="/edit-document/<%= idB64 %>" target="_blank" class="text-primary" style="font-size:12px;">View letter</a>
+                                            </span>
+                                        </div>
+                                        <% }) %>
+                                    </div>
+                                    <% } %>
+
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <%- include('../common/footer'); -%>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app/assets/js/bundle.js"></script>
+    <script src="/app/assets/js/scripts.js"></script>
+    <script>
+        // Front-end-only demo: simulate progress when Start is clicked.
+        // No backend calls — purely visual.
+        (function () {
+            const targetCount = <%= stats.total_docs %>;
+            const sampleNewRefs = [
+                "SPS/P-344/MJB/SD-41,SPS/P-344/MJB/SD-42",
+                "BSEC/1921/AK/605",
+                "",
+                "NH-12014/17/2023-RO Patna",
+                "SPS/MGS/SITE/22-23/118,SPS/MGS/SITE/22-23/119",
+                "SPS/HP/IRCON/2417",
+                "",
+                "AECOM-RODIC/BSRDCL/GANGAPATH/SPSCPL/23-24/0118",
+            ];
+            const sampleDocNumbers = [
+                "SPS/P-344/136", "SPS/GUWAHATI/AE/1495", "SPS/P-351/256",
+                "271/PMC/05/BBB/SPS/2020-21", "SPS/MGS/SITE/20-21/2182",
+                "SPS/PHAPHAMAU/MORTH/2187", "ARV/Godavari/25/053",
+                "SPSCPL/BSRDCL/GANGAPATH/AE/25-26/614"
+            ];
+
+            const startBtn = document.getElementById('startBatchBtn');
+            const stopBtn = document.getElementById('stopBatchBtn');
+            const progressBar = document.getElementById('progressBar');
+            const progressDone = document.getElementById('progressDone');
+            const progressRemaining = document.getElementById('progressRemaining');
+            const cntUpdated = document.getElementById('cntUpdated');
+            const cntSkipped = document.getElementById('cntSkipped');
+            const cntFailed = document.getElementById('cntFailed');
+            const activityBody = document.getElementById('activityBody');
+            const activityCard = document.getElementById('activityCard');
+            const dryRunToggle = document.getElementById('dryRunToggle');
+            const statusChip = document.getElementById('statusChip');
+            const statusChipLabel = document.getElementById('statusChipLabel');
+            const jspStarted = document.getElementById('jspStarted');
+            const jspElapsed = document.getElementById('jspElapsed');
+            const jspRemaining = document.getElementById('jspRemaining');
+            const jspCurrent = document.getElementById('jspCurrent');
+
+            let timer = null;
+            let elapsedTimer = null;
+            let startedAt = null;
+            let done = 0, updated = 0, skipped = 0, failed = 0;
+
+            function fmtClock(d) {
+                const pad = n => String(n).padStart(2, '0');
+                return pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+            }
+            function fmtDate(d) {
+                const pad = n => String(n).padStart(2, '0');
+                return pad(d.getDate()) + '/' + pad(d.getMonth()+1) + '/' + d.getFullYear() + ' ' + fmtClock(d);
+            }
+            function fmtDuration(seconds) {
+                if (seconds < 0) seconds = 0;
+                seconds = Math.floor(seconds);
+                if (seconds < 60) return seconds + ' sec';
+                const m = Math.floor(seconds / 60);
+                const s = seconds % 60;
+                if (m < 60) return m + ' min ' + s + ' sec';
+                const h = Math.floor(m / 60);
+                return h + ' hr ' + (m % 60) + ' min';
+            }
+            function setStatus(state, label) {
+                statusChip.className = 'status-chip ' + state;
+                statusChipLabel.textContent = label;
+            }
+
+            function addRow(docNumber, oldRef, newRef, status) {
+                const row = document.createElement('div');
+                row.className = 'activity-row';
+                const pill = status === 'Fixed' ? 'status-updated'
+                           : status === 'No reference' ? 'status-skipped'
+                           : 'status-failed';
+                row.innerHTML =
+                    '<div>' + docNumber + '</div>' +
+                    '<div>' + (oldRef || '<em>—</em>') + '</div>' +
+                    '<div>' + (newRef || '<em>(none)</em>') + '</div>' +
+                    '<div><span class="status-pill ' + pill + '">' + status + '</span></div>';
+                activityBody.insertBefore(row, activityBody.firstChild);
+                if (activityBody.children.length > 30) {
+                    activityBody.removeChild(activityBody.lastChild);
+                }
+            }
+
+            function updateElapsed() {
+                if (!startedAt) return;
+                const sec = (Date.now() - startedAt) / 1000;
+                jspElapsed.textContent = fmtDuration(sec);
+                if (done > 0 && done < targetCount) {
+                    const perDoc = sec / done;
+                    jspRemaining.textContent = fmtDuration(perDoc * (targetCount - done));
+                }
+            }
+
+            function tick() {
+                if (done >= targetCount) {
+                    clearInterval(timer); timer = null;
+                    clearInterval(elapsedTimer); elapsedTimer = null;
+                    setStatus('done', 'Completed');
+                    jspCurrent.textContent = 'All ' + targetCount.toLocaleString() + ' letters processed';
+                    jspRemaining.textContent = '0 sec';
+                    startBtn.style.display = 'inline-block';
+                    startBtn.disabled = true;
+                    startBtn.innerHTML = '<em class="icon ni ni-check"></em><span>Done</span>';
+                    stopBtn.style.display = 'none';
+                    return;
+                }
+                const batchSize = Math.max(1, Math.floor(targetCount / 100));
+                for (let i = 0; i < batchSize && done < targetCount; i++) {
+                    const idx = done % sampleDocNumbers.length;
+                    const docNum = sampleDocNumbers[idx];
+                    const newRef = sampleNewRefs[done % sampleNewRefs.length];
+
+                    if (Math.random() < 0.85) {
+                        updated++;
+                        addRow(docNum + '-' + done, 'IRCON/1039/HRBP(CRSP)/1/2022/1039/1471', newRef, 'Fixed');
+                    } else if (Math.random() < 0.95) {
+                        skipped++;
+                        addRow(docNum + '-' + done, 'IRCON/1039/HRBP(CRSP)/1/2022/1039/1471', '', 'No reference');
+                    } else {
+                        failed++;
+                        addRow(docNum + '-' + done, 'IRCON/1039/HRBP(CRSP)/1/2022/1039/1471', '', 'Needs review');
+                    }
+                    done++;
+                }
+                const pct = (done / targetCount) * 100;
+                progressBar.style.width = pct.toFixed(1) + '%';
+                progressDone.textContent = done.toLocaleString();
+                progressRemaining.textContent = (targetCount - done).toLocaleString();
+                cntUpdated.textContent = updated.toLocaleString();
+                cntSkipped.textContent = skipped.toLocaleString();
+                cntFailed.textContent = failed.toLocaleString();
+                jspCurrent.textContent = 'Letter ' + done.toLocaleString() + ' of ' + targetCount.toLocaleString();
+                updateElapsed();
+            }
+
+            startBtn.addEventListener('click', function () {
+                if (timer) return;
+                const isDryRun = dryRunToggle && dryRunToggle.checked;
+                if (!confirm(
+                    (isDryRun
+                        ? 'Test run — no changes will actually be saved.'
+                        : 'This will update ' + targetCount.toLocaleString() + ' letters. This cannot be undone.'
+                    ) + '\n\nContinue?'
+                )) return;
+
+                done = updated = skipped = failed = 0;
+                startedAt = Date.now();
+                activityCard.style.display = 'block';
+                startBtn.style.display = 'none';
+                stopBtn.style.display = 'inline-block';
+                if (dryRunToggle) dryRunToggle.disabled = true;
+
+                setStatus('running', isDryRun ? 'Running (test mode)' : 'Running');
+                jspStarted.textContent = fmtDate(new Date(startedAt));
+                jspElapsed.textContent = '0 sec';
+                jspRemaining.textContent = 'calculating...';
+                jspCurrent.textContent = 'Starting up...';
+
+                timer = setInterval(tick, 200);
+                elapsedTimer = setInterval(updateElapsed, 1000);
+            });
+
+            stopBtn.addEventListener('click', function () {
+                if (timer) {
+                    clearInterval(timer); timer = null;
+                    clearInterval(elapsedTimer); elapsedTimer = null;
+                    setStatus('stopped', 'Stopped');
+                    jspCurrent.textContent = 'Stopped at letter ' + done.toLocaleString() + ' of ' + targetCount.toLocaleString();
+                    startBtn.style.display = 'inline-block';
+                    startBtn.innerHTML = '<em class="icon ni ni-play-fill"></em><span>Resume</span>';
+                    stopBtn.style.display = 'none';
+                }
+            });
+        })();
+    </script>
+</body>
+
+</html>

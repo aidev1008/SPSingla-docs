@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en" class="js">
+
+<head>
+    <base href="../" />
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <link rel="shortcut icon" href="/app/assets/images/favicon.png" />
+    <title>Reference Audit | Document Controller</title>
+    <link rel="stylesheet" href="/app/assets/css/dashlite.css" />
+    <link id="skin-default" rel="stylesheet" href="/app/assets/css/theme.css" />
+    <style>
+        .ref-cell {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #364a63;
+            word-break: break-all;
+        }
+        .count-badge {
+            font-size: 13px;
+            font-weight: 600;
+        }
+        .danger-row { background-color: #fff5f5; }
+        .danger-row:hover { background-color: #ffe9e9 !important; }
+        .stat-card {
+            background: #fff;
+            border: 1px solid #e5e9f2;
+            border-radius: 6px;
+            padding: 18px 22px;
+            box-shadow: 0 1px 3px rgba(43, 55, 72, 0.04);
+        }
+        .stat-value { font-size: 24px; font-weight: 700; color: #364a63; }
+        .stat-label { font-size: 12px; color: #8094ae; text-transform: uppercase; letter-spacing: .5px; }
+        .nk-tb-list .nk-tb-item:hover { cursor: pointer; background: #f5f6fa; }
+        .filter-bar { padding: 12px 16px; border-bottom: 1px solid #e5e9f2; }
+        .filter-bar input { max-width: 380px; }
+
+        /* Table column sizing to keep Action visible */
+        .ref-tb .col-ref       { flex: 0 0 28%; max-width: 28%; }
+        .ref-tb .col-reupload  { flex: 0 0 200px; max-width: 200px; }
+        .ref-tb .col-count     { flex: 0 0 8%;  max-width: 8%;  text-align: right; }
+        .ref-tb .col-folders   { flex: 0 0 7%;  max-width: 7%;  text-align: right; }
+        .ref-tb .col-topfolders{ flex: 1 1 auto; min-width: 0; }
+        .ref-tb .col-action    { flex: 0 0 110px; max-width: 110px; }
+
+        .badge-bug { background: #e85347; color: #fff; }
+        .badge-legit { background: #1ee0ac; color: #fff; }
+        .legend { font-size: 11px; color: #8094ae; padding: 8px 16px; }
+
+        .ref-tb .nk-tb-item { align-items: center; }
+
+        .top-folders-cell {
+            display: block;
+            font-size: 12px;
+            color: #8094ae;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .ref-cell-wrap {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .ref-cell-wrap .badge { white-space: nowrap; }
+
+        .btn-view-row {
+            min-width: 78px;
+        }
+    </style>
+</head>
+
+<body class="nk-body bg-lighter npc-general has-sidebar">
+    <div class="nk-app-root">
+        <div class="nk-main">
+            <%- include('../common/sidebar', { active: "ReferenceAudit" }); -%>
+            <div class="nk-wrap">
+                <%- include('../common/navbar', { headerText: "Reference Audit" }); -%>
+                <div class="nk-content">
+                    <div class="container-fluid">
+                        <div class="nk-content-inner">
+                            <div class="nk-content-body">
+
+                                <div class="nk-block-head nk-block-head-sm">
+                                    <div class="nk-block-between">
+                                        <div class="nk-block-head-content">
+                                            <h3 class="nk-block-title page-title">Reference Audit</h3>
+                                            <div class="nk-block-des text-soft">
+                                                <p>These reference numbers appear in many <strong>unrelated projects</strong>, which usually means they were saved by mistake. Click any row to see the affected documents.</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Summary cards -->
+                                <div class="nk-block">
+                                    <div class="row g-3">
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Total documents</div>
+                                                <div class="stat-value"><%= Number(summary.total_docs).toLocaleString() %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Missing a reference</div>
+                                                <div class="stat-value"><%= Number(summary.docs_no_ref).toLocaleString() %></div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4 col-sm-6">
+                                            <div class="stat-card">
+                                                <div class="stat-label">Need review</div>
+                                                <div class="stat-value" style="color:#e85347;"><%= crossProjectDocs.toLocaleString() %></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Groups table -->
+                                <div class="nk-block">
+                                    <div class="card card-bordered card-stretch">
+                                        <div class="card-inner-group">
+
+                                            <div class="filter-bar d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <% if (showAll) { %>
+                                                        <span class="sub-text">Showing all references (<%= groups.length %> shown) &nbsp;·&nbsp; <a href="/admin/reference-audit" class="text-primary">Show only ones that need review</a></span>
+                                                    <% } else { %>
+                                                        <span class="sub-text">Showing <%= groups.length %> references that need review &nbsp;·&nbsp; <a href="?show=all" class="text-primary">Show all references</a></span>
+                                                    <% } %>
+                                                </div>
+                                                <input type="text" id="searchInput" class="form-control" placeholder="Search a reference number..." />
+                                            </div>
+
+                                            <div class="card-inner p-0">
+                                                <div class="nk-tb-list nk-tb-ulist is-compact ref-tb">
+                                                    <div class="nk-tb-item nk-tb-head">
+                                                        <div class="nk-tb-col col-ref"><span class="sub-text">Reference Number</span></div>
+                                                        <div class="nk-tb-col col-reupload"><span class="sub-text">&nbsp;</span></div>
+                                                        <div class="nk-tb-col col-count"><span class="sub-text">Documents</span></div>
+                                                        <div class="nk-tb-col col-folders"><span class="sub-text">Folders</span></div>
+                                                        <div class="nk-tb-col col-topfolders"><span class="sub-text">Where it appears</span></div>
+                                                        <div class="nk-tb-col col-action nk-tb-col-tools text-end"><span class="sub-text">&nbsp;</span></div>
+                                                    </div>
+
+                                                    <% if (groups.length === 0) { %>
+                                                        <div class="card-inner text-center text-soft" style="padding:40px;">
+                                                            <em class="icon ni ni-check-circle-fill" style="font-size:32px; color:#1ee0ac;"></em>
+                                                            <div style="margin-top:10px;">Nothing needs review right now.</div>
+                                                        </div>
+                                                    <% } %>
+
+                                                    <% groups.forEach(g => {
+                                                        const refEncoded = Buffer.from(g.doc_reference, 'utf-8').toString('base64');
+                                                        const detailUrl = '/admin/reference-audit/' + encodeURIComponent(refEncoded);
+                                                        const isCrossProject = g.distinct_projects > 1;
+                                                        const topFoldersText = g.top_folders || '';
+                                                    %>
+                                                    <div class="nk-tb-item group-row <%= isCrossProject ? 'danger-row' : '' %>"
+                                                         data-ref="<%= g.doc_reference.replace(/\"/g, '&quot;') %>"
+                                                         onclick="window.location.href='<%= detailUrl %>'">
+                                                        <div class="nk-tb-col col-ref">
+                                                            <div class="ref-cell-wrap">
+                                                                <span class="ref-cell"><%= g.doc_reference %></span>
+                                                                <% if (isCrossProject) { %>
+                                                                    <span class="badge badge-bug">Needs review</span>
+                                                                <% } %>
+                                                            </div>
+                                                        </div>
+                                                        <div class="nk-tb-col col-reupload">
+                                                            <a href="/admin/reference-audit/<%= encodeURIComponent(refEncoded) %>/refill"
+                                                               class="btn btn-sm btn-primary btn-reupload-group"
+                                                               title="Run batch fix for all <%= g.doc_count %> docs"
+                                                               onclick="event.stopPropagation();">
+                                                                <em class="icon ni ni-reload"></em>
+                                                                <span>Re-upload Reference</span>
+                                                            </a>
+                                                        </div>
+                                                        <div class="nk-tb-col col-count">
+                                                            <span class="count-badge"><%= g.doc_count.toLocaleString() %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col col-folders">
+                                                            <span><%= g.folder_count %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col col-topfolders">
+                                                            <span class="top-folders-cell" title="<%= topFoldersText %>"><%= topFoldersText %></span>
+                                                        </div>
+                                                        <div class="nk-tb-col col-action nk-tb-col-tools text-end">
+                                                            <a href="<%= detailUrl %>" class="btn btn-sm btn-outline-primary btn-view-row" onclick="event.stopPropagation();">
+                                                                <em class="icon ni ni-eye"></em> View
+                                                            </a>
+                                                        </div>
+                                                    </div>
+                                                    <% }) %>
+                                                </div>
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <%- include('../common/footer'); -%>
+            </div>
+        </div>
+    </div>
+
+    <script src="/app/assets/js/bundle.js"></script>
+    <script src="/app/assets/js/scripts.js"></script>
+    <script>
+        document.getElementById('searchInput').addEventListener('input', function (e) {
+            const q = e.target.value.toLowerCase();
+            document.querySelectorAll('.group-row').forEach(row => {
+                const ref = (row.getAttribute('data-ref') || '').toLowerCase();
+                row.style.display = ref.includes(q) ? '' : 'none';
+            });
+        });
+    </script>
+</body>
+
+</html>
